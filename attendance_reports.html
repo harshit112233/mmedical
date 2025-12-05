@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attendance Reports – Smart Attendance</title>
+
+  <!-- Tailwind + Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/phosphor-icons"></script>
+
+  <style>
+    .glass { background: rgba(255,255,255,0.55); backdrop-filter: blur(16px); }
+    .block-card { background: white; border-radius: 18px; padding: 20px; box-shadow: 0 10px 28px rgba(0,0,0,.08); }
+    .sheet-table th, .sheet-table td { border: 1px solid #e5e7eb; padding: 6px 10px; text-align: center; font-size: 14px; }
+    .sheet-table th { background: #f9fafb; font-weight: 600; }
+    .sheet-wrapper { overflow-x: auto; padding-bottom: 10px; }
+    .label-cell { background: #f3f4f6; font-weight: 600; width: 120px; text-align: left !important; }
+    .sheet-table thead th { position: sticky; top: 0; z-index: 10; }
+    @media (max-width: 640px) {
+      .label-cell { width: 100px; font-size: 13px; }
+      .sheet-table th, .sheet-table td { font-size: 12px; padding: 5px; }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- TOP NAV -->
+  <header class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center shadow">
+    <button onclick="toggleSidebar()" class="lg:hidden text-3xl"><i class="ph-list"></i></button>
+    <div class="flex items-center gap-3">
+      <h1 class="text-xl font-bold">Attendance Reports</h1>
+      <p id="todayDate" class="text-sm text-gray-600 hidden md:block"></p>
+    </div>
+    <img src="https://i.pravatar.cc/50?img=8" class="w-11 h-11 rounded-full shadow">
+  </header>
+
+  <div class="flex pt-20">
+
+    <!-- SIDEBAR (fixed + z-index so it sits above content) -->
+    <aside id="sidebar"
+           class="glass w-72 fixed inset-y-0 left-0 shadow-lg px-6 py-6 rounded-r-2xl z-50 transform -translate-x-full lg:translate-x-0 transition-all duration-300">
+      <h2 class="text-2xl font-bold mb-8 flex items-center gap-2"><i class="ph-fingerprint text-indigo-600"></i> Smart Attendance</h2>
+      <nav class="space-y-3 text-gray-800">
+        <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50"><i class="ph-gauge"></i> Dashboard</a>
+        <a href="attendance_reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600 text-white shadow-lg"><i class="ph-calendar-check"></i> Attendance Reports</a>
+        <a href="employees.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50"><i class="ph-users-three"></i> Employees</a>
+        <a href="overtime.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50"><i class="ph-clock"></i> Overtime</a>
+        <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50"><i class="ph-currency-inr"></i> Payroll</a>
+        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50"><i class="ph-gear"></i> Settings</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 px-6 lg:ml-72">
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-3xl font-extrabold">Attendance Reports</h2>
+          <p class="text-gray-600 mt-1">Exact sheet-style blocks (Status / InTime / OutTime / Total)</p>
+        </div>
+
+        <div class="flex gap-3">
+          <button id="downloadCsvBtn" onclick="downloadAttendanceCSV()" class="px-5 py-2 bg-white rounded-xl shadow hover:bg-gray-100 text-sm flex items-center gap-2">
+            <i class="ph-download-simple"></i> CSV Report
+          </button>
+
+          <button id="downloadXlsBtn" onclick="downloadAttendanceExcel()" class="px-5 py-2 bg-indigo-600 text-white rounded-xl shadow hover:bg-indigo-700 text-sm flex items-center gap-2">
+            <i class="ph-file-arrow-down"></i> Excel Report
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== ATTENDANCE BLOCKS (EXACT SHEET STYLE) ========== -->
+      <div class="space-y-8" id="attendanceBlocksContainer"></div>
+
+    </main>
+  </div>
+
+  <script>
+    // show date
+    document.getElementById('todayDate').innerText = new Date().toDateString();
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("-translate-x-full");
+    }
+
+    // Days header (1 to 31 with weekday labels)
+    const days = [
+      "1 W", "2 Th", "3 F", "4 St", "5 S", "6 M", "7 T", "8 W", "9 Th", "10 F",
+      "11 St", "12 S", "13 M", "14 T", "15 W", "16 Th", "17 F", "18 St", "19 S",
+      "20 M", "21 T", "22 W", "23 Th", "24 F", "25 St", "26 S", "27 M", "28 T",
+      "29 W", "30 Th", "31 F"
+    ];
+
+    // Employees synthetic data (emp name intentionally blank)
+    const employees = [
+      { code: "000", name: "", statusPattern: "allA" },
+      { code: "8", name: "", statusPattern: "patternNeha" },
+      { code: "14", name: "", statusPattern: "patternDeepak" },
+      { code: "15", name: "", statusPattern: "allA" }
+    ];
+
+    // Status generator
+    function generateStatus(emp, d) {
+      if (emp.statusPattern === "allA") return "A";
+      if (emp.statusPattern === "patternNeha") {
+        if ([4,11,18,25].includes(d)) return "WOP";
+        if ([10,20].includes(d)) return "A";
+        return "P";
+      }
+      if (emp.statusPattern === "patternDeepak") {
+        if ([3,10,17,24,31].includes(d)) return "WOP";
+        if ([15].includes(d)) return "A";
+        return "P";
+      }
+      return "A";
+    }
+
+    // In/Out/Total generators (accept emp object)
+    function generateInTime(emp, d) {
+      return (generateStatus(emp, d) === "P")
+        ? "13:" + String((d * 3) % 60).padStart(2, "0")
+        : "";
+    }
+
+    function generateOutTime(emp, d) {
+      return (generateStatus(emp, d) === "P")
+        ? "22:" + String((d * 2) % 60).padStart(2, "0")
+        : "";
+    }
+
+    function generateTotal(inT, outT) {
+      if (!inT || !outT) return "00:00";
+      const min = (parseInt(inT.split(":")[1]) + 5) % 60;
+      return "08:" + String(min).padStart(2, "0");
+    }
+
+    // Render blocks identical to sheet
+    function renderAttendanceBlocks() {
+      const container = document.getElementById("attendanceBlocksContainer");
+      container.innerHTML = "";
+
+      employees.forEach(emp => {
+        const block = document.createElement("div");
+        block.className = "block-card";
+
+        const headerHtml = `
+          <p class="text-lg font-semibold mb-1">Emp. Code: ${emp.code}</p>
+          <p class="text-gray-600 mb-3">Emp. Name: ${emp.name}</p>
+        `;
+
+        // build table header & rows
+        let tableHtml = `<div class="sheet-wrapper"><table class="sheet-table min-w-max"><thead><tr><th class="label-cell"></th>`;
+        tableHtml += days.map(d => `<th>${d}</th>`).join("");
+        tableHtml += `</tr></thead><tbody>`;
+
+        // Status row
+        tableHtml += `<tr><td class="label-cell">Status</td>`;
+        tableHtml += days.map((d,i) => `<td>${generateStatus(emp, i+1)}</td>`).join("");
+        tableHtml += `</tr>`;
+
+        // InTime row
+        tableHtml += `<tr><td class="label-cell">InTime</td>`;
+        tableHtml += days.map((d,i) => `<td>${generateInTime(emp, i+1)}</td>`).join("");
+        tableHtml += `</tr>`;
+
+        // OutTime row
+        tableHtml += `<tr><td class="label-cell">OutTime</td>`;
+        tableHtml += days.map((d,i) => `<td>${generateOutTime(emp, i+1)}</td>`).join("");
+        tableHtml += `</tr>`;
+
+        // Total row
+        tableHtml += `<tr><td class="label-cell">Total</td>`;
+        tableHtml += days.map((d,i) => `<td>${generateTotal(generateInTime(emp, i+1), generateOutTime(emp, i+1))}</td>`).join("");
+        tableHtml += `</tr>`;
+
+        tableHtml += `</tbody></table></div>`;
+
+        block.innerHTML = headerHtml + tableHtml;
+        container.appendChild(block);
+      });
+    }
+
+    // initial render
+    renderAttendanceBlocks();
+
+    /* ===========================
+       Export: CSV & Excel
+       They include the exact day headers with weekdays (1 W, 2 Th...).
+       =========================== */
+
+    function buildExportRows() {
+      // header row
+      const header = ["Emp Code","Emp Name","Row", ...days];
+      const rows = [ header ];
+
+      employees.forEach(emp => {
+        ["Status","InTime","OutTime","Total"].forEach(rowType => {
+          const row = [ emp.code, emp.name, rowType ];
+          for (let d = 1; d <= days.length; d++) {
+            if (rowType === "Status") row.push(generateStatus(emp, d));
+            if (rowType === "InTime") row.push(generateInTime(emp, d));
+            if (rowType === "OutTime") row.push(generateOutTime(emp, d));
+            if (rowType === "Total") row.push(generateTotal(generateInTime(emp, d), generateOutTime(emp, d)));
+          }
+          rows.push(row);
+        });
+      });
+
+      return rows;
+    }
+
+    function rowsToCSV(rows) {
+      return rows.map(r => r.map(cell => {
+        const safe = (cell === null || cell === undefined) ? '' : String(cell);
+        return `"${safe.replace(/"/g, '""')}"`;
+      }).join(',')).join('\n');
+    }
+
+    function downloadCSVFile(filename = 'Attendance_Report.csv') {
+      const rows = buildExportRows();
+      const csv = rowsToCSV(rows);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    function downloadAttendanceCSV() {
+      downloadCSVFile('Attendance_Report_November.csv');
+    }
+
+    function downloadAttendanceExcel() {
+      // quick demo: save CSV with .xlsx extension for Excel compatibility
+      downloadCSVFile('Attendance_Report_November.xlsx');
+    }
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payroll · Smart Attendance</title>
+
+<!-- Tailwind / Icons / Charts -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/phosphor-icons"></script>
+
+<style>
+.glass { background: rgba(255,255,255,0.55); backdrop-filter: blur(18px); }
+.glow-card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(20px);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(2,6,23,.06);
+}
+table th, table td { vertical-align: middle; }
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- HEADER -->
+<header class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between shadow">
+    <button onclick="toggleSidebar()" class="lg:hidden text-3xl">
+        <i class="ph-list"></i>
+    </button>
+    <h1 class="text-lg font-semibold">Payroll</h1>
+    <img src="https://i.pravatar.cc/50?img=8" class="w-11 h-11 rounded-full shadow">
+</header>
+
+<div class="flex pt-20">
+
+<!-- SIDEBAR -->
+<aside id="sidebar"
+       class="glass w-72 fixed inset-y-0 left-0 shadow-xl px-6 py-6 rounded-r-2xl z-50 
+              transform -translate-x-full lg:translate-x-0 transition-all duration-300">
+
+    <h2 class="text-2xl font-bold mb-8 flex items-center gap-2">
+        <i class="ph-fingerprint text-indigo-600"></i>
+        Smart Attendance
+    </h2>
+
+    <nav class="space-y-3">
+
+        <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+            <i class="ph-gauge"></i> Dashboard
+        </a>
+
+        <a href="attendance_reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+            <i class="ph-calendar-check"></i> Attendance Reports
+        </a>
+
+        <a href="employees.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+            <i class="ph-users-three"></i> Employees
+        </a>
+
+        <a href="overtime.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+            <i class="ph-clock"></i> Overtime
+        </a>
+
+        <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600 text-white shadow-lg">
+            <i class="ph-currency-inr"></i> Payroll
+        </a>
+
+        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+            <i class="ph-gear"></i> Settings
+        </a>
+    </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 px-6 lg:ml-72">
+
+    <!-- HEADER SECTION -->
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h2 class="text-3xl font-extrabold">Payroll Calculation</h2>
+            <p class="text-gray-600 mt-1">Run payroll, preview slips, and export</p>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="downloadCSV()"
+                    class="px-4 py-2 rounded-xl bg-white shadow flex items-center gap-2 hover:bg-gray-100">
+                <i class="ph-download-simple"></i> CSV
+            </button>
+
+            <button onclick="downloadExcel()"
+                    class="px-4 py-2 rounded-xl bg-indigo-600 text-white flex items-center gap-2 shadow hover:bg-indigo-700">
+                <i class="ph-file-arrow-down"></i> Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- RUN OPTIONS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        <div class="glow-card">
+            <h3 class="font-semibold mb-3">Run Options</h3>
+
+            <label class="block text-sm text-gray-600 mt-3">Month</label>
+            <select id="payMonth" class="px-3 py-2 rounded-xl border w-full">
+                <option>January</option><option>February</option><option>March</option><option>April</option>
+                <option>May</option><option>June</option><option>July</option><option>August</option>
+                <option>September</option><option>October</option><option selected>November</option><option>December</option>
+            </select>
+
+            <label class="block text-sm text-gray-600 mt-3">Include Overtime</label>
+            <select id="includeOT" class="px-3 py-2 rounded-xl border w-full">
+                <option>Yes</option>
+                <option>No</option>
+            </select>
+
+            <button class="px-4 py-2 mt-4 rounded-xl bg-indigo-600 text-white w-full">
+                Calculate
+            </button>
+        </div>
+
+        <!-- SALARY PREVIEW -->
+        <div class="glow-card lg:col-span-2">
+            <h2 class="text-2xl font-bold mb-4">Salary Preview – November</h2>
+
+            <div class="overflow-x-auto rounded-xl border">
+                <table class="min-w-full text-left border-collapse bg-white">
+                    <thead class="bg-gray-100 text-sm">
+                        <tr>
+                            <th class="p-3 border">Emp Code</th>
+                            <th class="p-3 border">Employee</th>
+                            <th class="p-3 border">Base Salary</th>
+                            <th class="p-3 border">Used Leaves</th>
+                            <th class="p-3 border">Refunded Leaves</th>
+                            <th class="p-3 border">Absent Deduction</th>
+                            <th class="p-3 border">Extra Salary</th>
+                            <th class="p-3 border">Deduction Days</th>
+                            <th class="p-3 border font-semibold">Final Salary</th>
+                            <th class="p-3 border font-semibold text-indigo-600">Salary After PF</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="text-sm">
+
+                        <!-- AKSHATA -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">8</td>
+                            <td class="p-3 border">Akshata</td>
+                            <td class="p-3 border">₹12,600</td>
+                            <td class="p-3 border">2</td>
+                            <td class="p-3 border">2</td>
+                            <td class="p-3 border">1</td>
+                            <td class="p-3 border">₹439.25</td>
+                            <td class="p-3 border">1.75</td>
+                            <td class="p-3 border font-semibold">₹13,144.25</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹11,829.83</td>
+                        </tr>
+
+                        <!-- JAYSHREE -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">14</td>
+                            <td class="p-3 border">Jayshree</td>
+                            <td class="p-3 border">₹15,460</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border">0</td>
+                            <td class="p-3 border">1</td>
+                            <td class="p-3 border">₹0</td>
+                            <td class="p-3 border">11.75</td>
+                            <td class="p-3 border font-semibold">₹9,404.83</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹8,464.35</td>
+                        </tr>
+
+                        <!-- NEHA -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">26</td>
+                            <td class="p-3 border">Neha</td>
+                            <td class="p-3 border">₹12,000</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border">0</td>
+                            <td class="p-3 border">2</td>
+                            <td class="p-3 border">₹0</td>
+                            <td class="p-3 border">3.5</td>
+                            <td class="p-3 border font-semibold">₹10,600</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹9,540</td>
+                        </tr>
+
+                        <!-- ANITA -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">27</td>
+                            <td class="p-3 border">Anita</td>
+                            <td class="p-3 border">₹16,800</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border">0</td>
+                            <td class="p-3 border">3</td>
+                            <td class="p-3 border">₹247.85</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border font-semibold">₹14,807.85</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹13,327.07</td>
+                        </tr>
+
+                        <!-- RAJESH -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">38</td>
+                            <td class="p-3 border">Rajesh</td>
+                            <td class="p-3 border">₹28,000</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border">0</td>
+                            <td class="p-3 border">1</td>
+                            <td class="p-3 border">₹0</td>
+                            <td class="p-3 border">1.75</td>
+                            <td class="p-3 border font-semibold">₹26,366.67</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹23,730</td>
+                        </tr>
+
+                        <!-- SHIVANI -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">41</td>
+                            <td class="p-3 border">Shivani</td>
+                            <td class="p-3 border">₹13,000</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border">0</td>
+                            <td class="p-3 border">14</td>
+                            <td class="p-3 border">₹0</td>
+                            <td class="p-3 border">15.5</td>
+                            <td class="p-3 border font-semibold">₹6,283.33</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹5,655</td>
+                        </tr>
+
+                        <!-- RATNESH -->
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border">49</td>
+                            <td class="p-3 border">Ratnesh</td>
+                            <td class="p-3 border">₹10,000</td>
+                            <td class="p-3 border">4</td>
+                            <td class="p-3 border">0</td>
+                            <td class="p-3 border">3</td>
+                            <td class="p-3 border">₹0</td>
+                            <td class="p-3 border">5</td>
+                            <td class="p-3 border font-semibold">₹8,333.33</td>
+                            <td class="p-3 border font-bold text-indigo-600">₹7,500</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PAYROLL TREND -->
+    <div class="glow-card mb-6">
+        <h3 class="font-semibold mb-3">Monthly Payroll Trend</h3>
+        <canvas id="payTrend" style="height:220px"></canvas>
+    </div>
+
+</main>
+</div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById("sidebar").classList.toggle("-translate-x-full");
+}
+
+/* PAYROLL TREND CHART */
+const ptx = document.getElementById('payTrend')?.getContext('2d');
+new Chart(ptx, {
+    type: 'line',
+    data: {
+        labels: ['Jul','Aug','Sep','Oct','Nov'],
+        datasets: [{
+            label: 'Net Payout',
+            data: [34000,36000,35500,37000,38000],
+            fill: true,
+            backgroundColor: 'rgba(59,130,246,0.08)',
+            borderColor: '#3B82F6',
+            borderWidth: 3,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#3B82F6'
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: false } }
+    }
+});
+
+/* EXPORT CSV + EXCEL */
+function downloadCSV(){
+    let csv =
+`Emp Code,Employee,Base Salary,Used Leaves,Refunded Leaves,Absent Deduction,Extra Salary,Deduction Days,Final Salary,Salary After PF
+8,Akshata,12600,2,2,1,439.25,1.75,13144.25,11829.83
+14,Jayshree,15460,4,0,1,0,11.75,9404.83,8464.35
+26,Neha,12000,4,0,2,0,3.5,10600,9540
+27,Anita,16800,4,0,3,247.85,4,14807.85,13327.07
+38,Rajesh,28000,4,0,1,0,1.75,26366.67,23730
+41,Shivani,13000,4,0,14,0,15.5,6283.33,5655
+49,Ratnesh,10000,4,0,3,0,5,8333.33,7500`;
+
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "Payroll_November.csv";
+    a.click();
+}
+
+function downloadExcel(){
+    downloadCSV(); // Excel-compatible CSV
+}
+</script>
+
+</body>
+</html>

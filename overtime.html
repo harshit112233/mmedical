@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Overtime · Smart Attendance</title>
+
+<!-- Tailwind + Icons + ChartJS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/phosphor-icons"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  .glass { background: rgba(255,255,255,.55); backdrop-filter: blur(18px); }
+  .glow-card {
+    background: rgba(255,255,255,.75);
+    backdrop-filter: blur(20px);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(2,6,23,.06);
+  }
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- TOP NAV -->
+<header class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between shadow">
+  <button onclick="toggleSidebar()" class="lg:hidden text-3xl"><i class="ph-list"></i></button>
+  <h1 class="text-lg font-semibold">Overtime</h1>
+  <img src="https://i.pravatar.cc/50?img=8" class="w-11 h-11 rounded-full shadow">
+</header>
+
+<div class="flex pt-20">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar"
+    class="glass w-72 fixed inset-y-0 left-0 shadow-xl px-6 py-6 rounded-r-2xl z-50 transform -translate-x-full lg:translate-x-0 transition-all duration-300">
+    
+    <h2 class="text-2xl font-bold mb-8 flex items-center gap-2">
+      <i class="ph-fingerprint text-indigo-600"></i>
+      Smart Attendance
+    </h2>
+
+    <nav class="space-y-3">
+
+      <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-gauge"></i> Dashboard
+      </a>
+
+      <a href="attendance_reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-calendar-check"></i> Attendance Reports
+      </a>
+
+      <a href="employees.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-users-three"></i> Employees
+      </a>
+
+      <a href="overtime.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600 text-white shadow-lg">
+        <i class="ph-clock"></i> Overtime
+      </a>
+
+      <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-currency-inr"></i> Payroll
+      </a>
+
+      <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-gear"></i> Settings
+      </a>
+
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 px-6 lg:ml-72">
+
+    <!-- PAGE HEADER -->
+    <div class="flex justify-between items-start mb-6">
+      <div>
+        <h2 class="text-3xl font-extrabold">Overtime Records</h2>
+        <p class="text-gray-600 mt-1">Track, approve, and export overtime data</p>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="downloadCSV()" class="px-4 py-2 bg-white shadow rounded-xl hover:bg-gray-100 text-sm flex items-center gap-2">
+          <i class="ph-download-simple"></i> CSV
+        </button>
+
+        <button onclick="downloadExcel()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl shadow hover:bg-indigo-700 text-sm flex items-center gap-2">
+          <i class="ph-file-arrow-down"></i> Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="grid lg:grid-cols-3 gap-6 mb-6">
+
+      <div class="glow-card">
+        <h3 class="font-semibold mb-3">Summary</h3>
+        <p class="text-sm text-gray-600">Pending: <strong class="text-yellow-600">6</strong></p>
+        <p class="text-sm text-gray-600">Approved: <strong class="text-green-600">32</strong></p>
+        <p class="text-sm text-gray-600">Rejected: <strong class="text-red-600">4</strong></p>
+      </div>
+
+      <div class="glow-card lg:col-span-2">
+        <h3 class="font-semibold mb-3">Overtime Trend</h3>
+        <canvas id="otTrend" height="160"></canvas>
+      </div>
+
+    </div>
+
+    <!-- OVERTIME LIST -->
+    <div class="glow-card">
+      <h3 class="font-semibold mb-3">Overtime Requests</h3>
+
+      <div class="space-y-3">
+
+        <!-- ROW 1 -->
+        <div class="flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 transition">
+          <div class="flex items-center gap-3">
+            <img src="https://i.pravatar.cc/40?img=5" class="w-10 h-10 rounded-full">
+            <div>
+              <div class="font-semibold">Neha</div>
+              <div class="text-sm text-gray-500">2025-11-03 — 2.5 hrs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 2 -->
+        <div class="flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 transition">
+          <div class="flex items-center gap-3">
+            <img src="https://i.pravatar.cc/40?img=6" class="w-10 h-10 rounded-full">
+            <div>
+              <div class="font-semibold">Deepak</div>
+              <div class="text-sm text-gray-500">2025-11-03 — 3 hrs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 3 (example additional) -->
+        <div class="flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 transition">
+          <div class="flex items-center gap-3">
+            <img src="https://i.pravatar.cc/40?img=7" class="w-10 h-10 rounded-full">
+            <div>
+              <div class="font-semibold">Akshata</div>
+              <div class="text-sm text-gray-500">2025-11-04 — 1.5 hrs</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("-translate-x-full");
+}
+
+/* OVERTIME TREND CHART */
+const ctx = document.getElementById("otTrend")?.getContext("2d");
+if(ctx){
+  new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:["Jul","Aug","Sep","Oct","Nov"],
+      datasets:[{
+        label:"Overtime Hours",
+        data:[120,98,110,134,145],
+        borderColor:"#6366F1",
+        backgroundColor:"rgba(99,102,241,0.2)",
+        borderWidth:3,
+        tension:0.35,
+        pointRadius:4,
+        pointBackgroundColor:"#6366F1"
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true}}
+    }
+  });
+}
+
+/* EXPORT FUNCTIONS */
+const otData = [
+  ["Neha","2025-11-03","2.5"],
+  ["Deepak","2025-11-03","3"],
+  ["Akshata","2025-11-04","1.5"]
+];
+
+function downloadCSV(){
+  let csv = "Name,Date,Hours\n";
+  otData.forEach(r => csv += r.join(",") + "\n");
+  const blob = new Blob([csv],{type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Overtime_Report.csv";
+  a.click();
+}
+
+function downloadExcel(){
+  let csv = "Name,Date,Hours\n";
+  otData.forEach(r => csv += r.join(",") + "\n");
+  const blob = new Blob([csv],{type:"application/vnd.ms-excel"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Overtime_Report.xlsx";
+  a.click();
+}
+</script>
+
+</body>
+</html>

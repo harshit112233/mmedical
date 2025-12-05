@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Employee Profile · Smart Attendance</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/phosphor-icons"></script>
+
+<style>
+  .glass{background:rgba(255,255,255,.55);backdrop-filter:blur(18px)}
+  .glow-card{background:rgba(255,255,255,.75);backdrop-filter:blur(20px);
+    border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(2,6,23,.06)}
+  .sheet-table th, .sheet-table td{
+      border:1px solid #e5e7eb;padding:6px 8px;text-align:center;font-size:13px;
+  }
+  .sheet-table th{background:#f3f4f6;font-weight:600}
+  .label-cell{background:#f3f4f6;font-weight:600;text-align:left !important}
+  .late{background:#FEF3C7 !important}
+  .absent{background:#FEE2E2 !important}
+  .wop{background:#E5E7EB !important;color:#555 !important}
+  .heat-block{
+      width:18px;height:18px;border-radius:4px;margin:3px;
+      background:#d1d5db;
+  }
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- TOP NAV -->
+<header class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between shadow">
+  <button onclick="toggleSidebar()" class="lg:hidden text-3xl"><i class="ph-list"></i></button>
+  <h1 class="text-lg font-semibold">Employee Profile</h1>
+  <img src="https://i.pravatar.cc/50?img=5" class="w-11 h-11 rounded-full shadow" />
+</header>
+
+<div class="flex pt-20">
+
+<!-- SIDEBAR -->
+<aside id="sidebar"
+  class="glass w-72 fixed inset-y-0 left-0 z-40 transform -translate-x-full lg:translate-x-0 transition-all">
+  <div class="p-6">
+    <h2 class="text-2xl font-bold mb-6">
+      <i class="ph-fingerprint text-indigo-600"></i> Smart Attendance
+    </h2>
+
+    <nav class="space-y-3">
+      <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-gauge"></i> Dashboard
+      </a>
+      <a href="attendance_reports.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-calendar-check"></i> Attendance Reports
+      </a>
+      <a href="employees.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-users-three"></i> Employees
+      </a>
+      <a href="employee_profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600 text-white shadow-lg">
+        <i class="ph-user-circle"></i> Profile
+      </a>
+      <a href="settings.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50">
+        <i class="ph-gear"></i> Settings
+      </a>
+    </nav>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 px-6 lg:ml-72">
+  
+<!-- PROFILE HEADER -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  
+  <!-- Profile Card -->
+  <div class="glow-card text-center">
+    <img src="https://i.pravatar.cc/160?img=5" class="w-32 h-32 rounded-full mx-auto mb-3 shadow" />
+    <h2 class="text-2xl font-semibold">Neha</h2>
+    <p class="text-gray-600">Accountant — KANDARPADA</p>
+
+    <div class="mt-4 space-y-2">
+      <div class="flex justify-between"><span class="text-sm text-gray-500">Emp Code</span><strong>26</strong></div>
+      <div class="flex justify-between"><span class="text-sm text-gray-500">Joined</span><strong>2023-02-10</strong></div>
+      <div class="flex justify-between"><span class="text-sm text-gray-500">Salary</span><strong>₹12,000</strong></div>
+    </div>
+
+    <div class="mt-4 flex justify-center gap-3">
+      <button class="px-4 py-2 bg-indigo-600 text-white rounded">Message</button>
+      <button class="px-4 py-2 bg-gray-200 rounded">Edit</button>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="glow-card lg:col-span-2">
+    <h3 class="font-semibold mb-3">Monthly Performance Overview</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex flex-col items-center">
+        <canvas id="attendanceDonut" width="120" height="120"></canvas>
+        <p class="text-center text-gray-600 text-sm mt-2">Attendance Ratio</p>
+      </div>
+
+      <div class="col-span-2">
+        <canvas id="otBar" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PERFORMANCE HEATMAP -->
+<div class="glow-card mb-6">
+  <h3 class="font-semibold mb-4">Weekly Performance Heatmap</h3>
+  <div class="grid grid-cols-7 gap-2">
+    <script>
+      // Heat intensity colors
+      const heatColors = ["#d1d5db","#93c5fd","#60a5fa","#3b82f6","#2563eb"];
+      for(let i=0;i<35;i++){
+        document.write(`<div class="heat-block" style="background:${heatColors[Math.floor(Math.random()*5)]}"></div>`);
+      }
+    </script>
+  </div>
+</div>
+
+<!-- MONTHLY ATTENDANCE 31-DAY SHEET -->
+<div class="glow-card mb-6">
+  <h3 class="font-semibold mb-4">Monthly Attendance Sheet</h3>
+
+  <div class="overflow-x-auto">
+    <table class="sheet-table min-w-max">
+
+      <thead>
+        <tr>
+          <th class="label-cell"></th>
+          <script>
+            const daysLabel = [
+              "1 W","2 Th","3 F","4 St","5 S","6 M","7 T","8 W","9 Th","10 F",
+              "11 St","12 S","13 M","14 T","15 W","16 Th","17 F","18 St","19 S",
+              "20 M","21 T","22 W","23 Th","24 F","25 St","26 S","27 M","28 T",
+              "29 W","30 Th","31 F"
+            ];
+            daysLabel.forEach(d => document.write(`<th>${d}</th>`));
+          </script>
+        </tr>
+      </thead>
+
+      <tbody id="attendanceSheet"></tbody>
+
+    </table>
+  </div>
+</div>
+
+<!-- ACTIVITY FEED -->
+<div class="glow-card mb-10">
+  <h3 class="font-semibold mb-3">Activity Feed</h3>
+
+  <div class="space-y-3">
+    <div class="p-3 border rounded">Applied for OT — 2025-11-03</div>
+    <div class="p-3 border rounded">Marked Late — 2025-11-02</div>
+    <div class="p-3 border rounded">Leave Request Approved — 2025-10-28</div>
+    <div class="p-3 border rounded">Profile Updated — 2025-10-20</div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+}
+
+/* -------- Generate Mixed Realistic Attendance Pattern -------- */
+
+const statusRow = [];
+const inRow = [];
+const outRow = [];
+const totalRow = [];
+
+for(let d=1; d<=31; d++){
+    const rand = Math.random();
+
+    if(rand < 0.15){  
+        statusRow.push("A");
+        inRow.push("");
+        outRow.push("");
+        totalRow.push("00:00");
+    }
+    else if(rand < 0.25){
+        statusRow.push("WOP");
+        inRow.push("");
+        outRow.push("");
+        totalRow.push("00:00");
+    }
+    else if(rand < 0.55){
+        statusRow.push("L");
+        let h = 9 + Math.floor(Math.random()*2);
+        let m = String(Math.floor(Math.random()*60)).padStart(2,"0");
+        inRow.push(`09:${m}`);
+        outRow.push(`${h}:${m}`);
+        totalRow.push("08:00");
+    }
+    else {
+        statusRow.push("P");
+        inRow.push("09:00");
+        outRow.push("18:00");
+        totalRow.push("09:00");
+    }
+}
+
+let html = "";
+
+// STATUS
+html += `<tr><td class="label-cell">Status</td>`;
+statusRow.forEach(s=>{
+    let cls = s==="L"?"late": s==="A"?"absent": s==="WOP"?"wop":"";
+    html += `<td class="${cls}">${s}</td>`;
+});
+html += `</tr>`;
+
+// IN
+html += `<tr><td class="label-cell">InTime</td>`;
+inRow.forEach(t=> html += `<td>${t}</td>`);
+html += `</tr>`;
+
+// OUT
+html += `<tr><td class="label-cell">OutTime</td>`;
+outRow.forEach(t=> html += `<td>${t}</td>`);
+html += `</tr>`;
+
+// TOTAL
+html += `<tr><td class="label-cell">Total</td>`;
+totalRow.forEach(t=> html += `<td>${t}</td>`);
+html += `</tr>`;
+
+document.getElementById("attendanceSheet").innerHTML = html;
+
+/* -------- Attendance Donut Chart -------- */
+const attCtx = document.getElementById("attendanceDonut");
+new Chart(attCtx,{
+  type:"doughnut",
+  data:{
+    labels:["On Time","Late","Absent","WOP"],
+    datasets:[{
+        data:[
+            statusRow.filter(x=>x==="P").length,
+            statusRow.filter(x=>x==="L").length,
+            statusRow.filter(x=>x==="A").length,
+            statusRow.filter(x=>x==="WOP").length
+        ],
+        backgroundColor:["#34C759","#FACC15","#EF4444","#9CA3AF"],
+        borderWidth:0
+    }]
+  },
+  options:{cutout:"70%",plugins:{legend:{display:false}}}
+});
+
+/* -------- Overtime Bar Chart -------- */
+const otCtx = document.getElementById("otBar");
+new Chart(otCtx,{
+  type:"bar",
+  data:{
+    labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    datasets:[{
+      label:"Hours",
+      backgroundColor:"#6366F1",
+      data:[2,1,3,1.5,2.5,0,0]
+    }]
+  }
+});
+
+/* -------- Salary Trend -------- */
+const salCtx = document.getElementById("salaryTrend");
+new Chart(salCtx,{
+    type:"line",
+    data:{
+        labels:["Jul","Aug","Sep","Oct","Nov"],
+        datasets:[{
+            label:"Salary",
+            borderColor:"#3B82F6",
+            backgroundColor:"rgba(59,130,246,.1)",
+            tension:.3,
+            data:[11850,11600,12000,11900,12200]
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

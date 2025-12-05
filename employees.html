@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance – Employees</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/phosphor-icons"></script>
+
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(18px);
+        }
+
+        .glow-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(22px);
+            border-radius: 22px;
+            padding: 20px;
+            box-shadow:
+                0 8px 18px rgba(0, 0, 0, 0.09),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+            transition: 0.25s ease;
+        }
+
+        .glow-card:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 15px 28px rgba(0, 0, 0, 0.16),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+        }
+
+        .employee-card {
+            transition: 0.2s;
+        }
+
+        .employee-card:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- TOP NAV -->
+    <header class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center shadow">
+        <button onclick="toggleSidebar()" class="lg:hidden text-3xl"><i class="ph-list"></i></button>
+        <h1 class="text-xl font-bold">Employees</h1>
+        <img src="https://i.pravatar.cc/50?img=8" class="w-12 h-12 rounded-full shadow">
+    </header>
+
+    <div class="flex pt-20">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar"
+            class="glass w-72 fixed inset-y-0 left-0 shadow-xl px-6 py-6 rounded-r-3xl transform -translate-x-full
+            lg:translate-x-0 transition-all duration-300 z-50">
+
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-2">
+                <i class="ph-fingerprint text-indigo-600"></i>
+                Smart Attendance
+            </h2>
+
+            <nav class="space-y-3">
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50" href="index.html">
+                    <i class="ph-gauge"></i> Dashboard
+                </a>
+
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50" href="attendance_reports.html">
+                    <i class="ph-calendar-check"></i> Attendance Reports
+                </a>
+
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600 text-white shadow-lg" href="#">
+                    <i class="ph-users-three"></i> Employees
+                </a>
+
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50" href="overtime.html">
+                    <i class="ph-clock"></i> Overtime
+                </a>
+
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50" href="payroll.html">
+                    <i class="ph-currency-inr"></i> Payroll
+                </a>
+
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50" href="settings.html">
+                    <i class="ph-gear"></i> Settings
+                </a>
+            </nav>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 px-6 pt-24 lg:pt-6 lg:ml-72">
+
+            <!-- HEADER -->
+            <div class="flex flex-col lg:flex-row justify-between lg:items-center mb-8 gap-4">
+
+                <div>
+                    <h2 class="text-4xl font-extrabold">Employees Directory</h2>
+                    <p class="text-gray-600 mt-1">Manage all staff members</p>
+                </div>
+
+                <button class="px-5 py-3 bg-indigo-600 text-white rounded-xl shadow hover:bg-indigo-700 flex items-center gap-2">
+                    <i class="ph-plus"></i> Add Employee
+                </button>
+
+            </div>
+
+            <!-- FILTERS -->
+            <div class="glow-card mb-8">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <input type="text" placeholder="Search employees..."
+                        class="px-4 py-3 rounded-xl bg-white border shadow-sm">
+
+                    <select class="px-4 py-3 rounded-xl bg-white border shadow-sm">
+                        <option>All Roles</option>
+                        <option>Manager</option>
+                        <option>Supervisor</option>
+                        <option>Staff</option>
+                    </select>
+
+                    <select class="px-4 py-3 rounded-xl bg-white border shadow-sm">
+                        <option>All Locations</option>
+                        <option>Borivali (W)</option>
+                        <option>Dahisar (W)</option>
+                        <option>Kandarpada</option>
+                        <option>IC Colony</option>
+                        <option>Dahisar (E)</option>
+                        <option>Ashokvan</option>
+                    </select>
+
+                </div>
+            </div>
+
+            <!-- EMPLOYEE GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                <!-- EMPLOYEE CARD -->
+                <div class="glow-card employee-card text-center p-6">
+                    <img src="https://i.pravatar.cc/110?img=1" class="w-24 h-24 mx-auto rounded-full shadow mb-3">
+                    <h3 class="text-lg font-semibold">Akshata</h3>
+                    <p class="text-gray-500 text-sm">Receptionist</p>
+                    <p class="text-gray-400 text-xs mt-1">BORIVALI (W)</p>
+
+                    <div class="mt-4 flex justify-center gap-3">
+                        <a href="employee_profile.html"><button href="employee_profile.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">View</button></a>
+                        <button class="px-4 py-2 bg-gray-200 rounded-lg text-sm">Edit</button>
+                    </div>
+                </div>
+
+                <div class="glow-card employee-card text-center p-6">
+                    <img src="https://i.pravatar.cc/110?img=2" class="w-24 h-24 mx-auto rounded-full shadow mb-3">
+                    <h3 class="text-lg font-semibold">Jayshree</h3>
+                    <p class="text-gray-500 text-sm">Admin Staff</p>
+                    <p class="text-gray-400 text-xs mt-1">DAHISAR (E)</p>
+
+                    <div class="mt-4 flex justify-center gap-3">
+                        <a href="employee_profile.html"><button href="employee_profile.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">View</button></a>
+                        <button class="px-4 py-2 bg-gray-200 rounded-lg text-sm">Edit</button>
+                    </div>
+                </div>
+
+                <div class="glow-card employee-card text-center p-6">
+                    <img src="https://i.pravatar.cc/110?img=5" class="w-24 h-24 mx-auto rounded-full shadow mb-3">
+                    <h3 class="text-lg font-semibold">Neha</h3>
+                    <p class="text-gray-500 text-sm">Accountant</p>
+                    <p class="text-gray-400 text-xs mt-1">KANDARPADA</p>
+
+                    <div class="mt-4 flex justify-center gap-3">
+                        <a href="employee_profile.html"><button href="employee_profile.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">View</button></a>
+                        <button class="px-4 py-2 bg-gray-200 rounded-lg text-sm">Edit</button>
+                    </div>
+                </div>
+
+                <div class="glow-card employee-card text-center p-6">
+                    <img src="https://i.pravatar.cc/110?img=12" class="w-24 h-24 mx-auto rounded-full shadow mb-3">
+                    <h3 class="text-lg font-semibold">Anita</h3>
+                    <p class="text-gray-500 text-sm">Supervisor</p>
+                    <p class="text-gray-400 text-xs mt-1">DAHISAR (W)</p>
+
+                    <div class="mt-4 flex justify-center gap-3">
+                        <a href="employee_profile.html"><button href="employee_profile.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">View</button></a>
+                        <button class="px-4 py-2 bg-gray-200 rounded-lg text-sm">Edit</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MOBILE SIDEBAR JS -->
+    <script>
+        function toggleSidebar() {
+            const sb = document.getElementById("sidebar");
+            sb.classList.toggle("-translate-x-full");
+        }
+    </script>
+
+</body>
+
+</html>
